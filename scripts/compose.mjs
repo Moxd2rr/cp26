@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// Compose et rend une musique de fond originale (libre de droits) : piano feutré + nappe douce, sans percussions.
+// Compose et rend une musique de fond originale (libre de droits) : nappe douce et basse feutrée,
+// sans aucune note piquée ni percussion — un simple fond qui respire.
 //   node scripts/compose.mjs content/music/douceur.mp3
 // Synthèse additive en JavaScript, réverbération « Freeverb », encodage MP3 via ffmpeg.
 import fs from 'node:fs'
@@ -116,7 +117,7 @@ function bass(t0, m, dur) {
   const w = (2 * Math.PI * f) / SR
   for (let i = 0; i < n; i++) {
     const t = i / SR
-    let env = Math.min(1, t / 0.04) * Math.exp(-t / 3.2)
+    let env = Math.min(1, t / 0.35) * Math.exp(-t / 3.2)
     if (t > dur) env *= Math.exp(-(t - dur) / 0.4)
     const s = 0.055 * env * (Math.sin(w * i) + 0.25 * Math.sin(2 * w * i))
     const j = start + i
@@ -129,38 +130,26 @@ function bass(t0, m, dur) {
 const human = () => (rnd() - 0.5) * 0.03
 
 // ───── Écriture ─────
+// Uniquement des sons tenus (nappe + basse feutrée) : aucune note piquée, aucune attaque franche.
 let bar = 0
 for (const section of SECTIONS) {
   for (let b = 0; b < 8; b++, bar++) {
     const t = 1 + bar * BAR
     const ch = CHORDS[b]
     const soft = section === 'intro' || section === 'calme'
-    for (const m of ch.v) pad(t, m, BAR, soft ? 0.03 : 0.026)
+    for (const m of ch.v) pad(t, m, BAR, soft ? 0.03 : 0.028)
     if (section !== 'intro' || b >= 2) bass(t, ch.bass, BAR * 0.95)
-    if (section === 'intro') {
-      // quelques notes isolées, très haut et très doux
-      if (b % 2 === 1) piano(t + BEAT * 2 + human(), ch.v[3] + 12, 0.32, BEAT * 2, 0.4)
-    } else {
-      // arpège brisé, aéré
-      const pattern = section === 'calme' ? [[0, 0], [2.5, 2]] : [[0, 0], [1.5, 2], [2.5, 3], [3.5, 1]]
-      for (const [beat, vi] of pattern) {
-        const m = ch.v[vi] + (vi >= 2 ? 0 : 12)
-        piano(t + beat * BEAT + human(), m, 0.34 + rnd() * 0.08, BEAT * 1.5, vi % 2 ? 0.35 : -0.35)
-      }
-      if (section === 'melodie' || section === 'melodie2') {
-        for (const [st, d, m] of MELODY[b]) {
-          const lift = section === 'melodie2' && d >= 2 ? 0.05 : 0
-          piano(t + st * BEAT + human(), m, 0.5 + lift + rnd() * 0.06, d * BEAT * 0.95, 0.05)
-        }
-      }
+    // Voix aérienne, très discrète, au cœur du morceau : la note de la mélodie, une octave plus bas, tenue.
+    if (section === 'melodie' || section === 'melodie2') {
+      for (const [st, d, m] of MELODY[b]) if (d >= 2) pad(t + st * BEAT, m - 12, d * BEAT, 0.012)
     }
   }
 }
-// Accord final, laissé sonner
+// Accord final, laissé s'éteindre
 const tEnd = 1 + bar * BAR
-for (const m of [36, 52, 59, 62, 67]) piano(tEnd + human() * 3, m + (m < 50 ? 12 : 0), 0.4, BAR * 2, (m % 3) * 0.2 - 0.2)
-for (const m of [52, 59, 62, 67]) pad(tEnd, m, BAR * 1.5, 0.026)
+for (const m of [52, 59, 62, 67]) pad(tEnd, m, BAR * 1.5, 0.028)
 bass(tEnd, 36, BAR * 1.5)
+void piano
 
 // ───── Réverbération (Freeverb) ─────
 function freeverb(input, spread) {

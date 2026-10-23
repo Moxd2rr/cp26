@@ -62,7 +62,7 @@ Les textes de l'accueil, de l'introduction, du cadeau et du final se règlent da
 
 ## Musique
 
-`douceur.mp3` est une composition originale générée par `scripts/compose.mjs` : piano feutré, nappe douce, sans paroles ni percussions. Elle est donc libre de droits. Elle démarre au premier clic, reste à volume bas pendant la lecture et monte un peu pendant le final. Un petit bouton en bas à gauche coupe le son.
+`douceur.mp3` est une composition originale générée par `scripts/compose.mjs` : une nappe douce et une basse feutrée, sans notes piquées, sans paroles ni percussions. Elle est donc libre de droits. Elle démarre au premier clic, reste à volume bas pendant la lecture et monte un peu pendant le final. Un petit bouton en bas à gauche coupe le son.
 Pour une autre musique, déposer un MP3 dans `content/music/` et l'indiquer dans `experience.yaml` (`musique: music/fichier.mp3`).
 
 ## Déployer
