@@ -53,6 +53,11 @@ export function EnvelopeFront({
         >
           {letter.author}
         </span>
+        {letter.tagline && (
+          <span className={`mt-[0.8cqw] line-clamp-2 block font-serif italic leading-tight ${dark ? 'text-cream/70' : 'text-ink-soft'}`} style={{ fontSize: 'max(0.62rem, 4.1cqw)' }}>
+            « {letter.tagline} »
+          </span>
+        )}
       </div>
 
       {/* Timbre + cachet */}

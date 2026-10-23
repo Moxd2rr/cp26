@@ -123,6 +123,9 @@ parsed.sort((a, b) => a.meta.numero - b.meta.numero)
 
 const letters = []
 for (const [i, { file, meta, body }] of parsed.entries()) {
+  if (meta.sous_titre && !body.includes(String(meta.sous_titre))) {
+    fail(`${file} : le sous-titre doit être un extrait exact de la lettre :\n    « ${meta.sous_titre} »`)
+  }
   const author = String(meta.auteur).trim()
   const ambiance = meta.ambiance ?? AMBIANCES[i % 5]
   if (!AMBIANCES.includes(ambiance)) fail(`${file} : ambiance « ${ambiance} » inconnue (${AMBIANCES.join(', ')}).`)
@@ -140,6 +143,7 @@ for (const [i, { file, meta, body }] of parsed.entries()) {
     signature: meta.signature ?? null,
     lastLineSignature: meta.derniere_ligne_signature === true,
     firstLineTitle: meta.premiere_ligne_titre === true,
+    tagline: meta.sous_titre ? String(meta.sous_titre) : null,
     ambiance,
     layout,
     body,

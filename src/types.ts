@@ -22,6 +22,8 @@ export interface Letter {
   lastLineSignature: boolean
   /** La première ligne est un titre écrit par l'auteur : affichée comme titre, texte inchangé. */
   firstLineTitle?: boolean
+  /** Extrait exact de la lettre affiché sous le nom (distingue deux auteurs signant de la même façon). */
+  tagline?: string | null
   ambiance: Ambiance
   layout: Layout
   /** Texte intégral, tel que fourni. */

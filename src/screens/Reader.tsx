@@ -148,6 +148,7 @@ export function Reader({ letter, isFinal, prev, next, onClose, onNavigate, onFin
               </div>
               <p className="mt-6 font-serif text-base italic text-ink-soft">de la part de</p>
               <h1 className="hand mt-1 text-[clamp(2rem,7vw,2.9rem)] text-pen">{letter.author}</h1>
+              {letter.tagline && <p className="mt-1 font-serif text-lg italic text-ink-soft">« {letter.tagline} »</p>}
               {letter.relation && <p className="typed mt-2 text-ink-soft/80">{letter.relation}</p>}
               <div className="mt-6 h-px w-24 bg-ink/20" />
             </header>

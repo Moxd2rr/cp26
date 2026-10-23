@@ -80,6 +80,7 @@ export function EnvelopeOpening({
               >
                 <p className="typed !text-[0.6rem] text-ink-soft">Lettre n° {pad(letter.number)}</p>
                 <p className="hand mt-2 text-[clamp(1.3rem,5.5vw,1.9rem)] text-pen">{letter.author}</p>
+                {letter.tagline && <p className="font-serif text-sm italic text-ink-soft">« {letter.tagline} »</p>}
                 <div className="mt-4 space-y-2.5 opacity-25">
                   {[94, 100, 86, 97, 72].map((w, i) => (
                     <div key={i} className="h-[2px] rounded bg-ink" style={{ width: `${w}%` }} />
