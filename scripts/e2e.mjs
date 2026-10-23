@@ -95,7 +95,7 @@ for (const d of devices) {
   await finaleBtn.click()
 
   // Finale : captures à des moments clés
-  const marks = [[4, 'a-ouverture'], [8, 'b-noms'], [13, 'c-citation'], [41, 'd-photo'], [50, 'e-26'], [56, 'f-message'], [66, 'g-fin']]
+  const marks = [[4, 'a-ouverture'], [8, 'b-noms'], [13, 'c-citation'], [32, 'd-photo'], [60, 'e-26'], [66, 'f-message'], [80, 'g-fin']]
   let t = 0
   for (const [at, label] of marks) {
     await page.waitForTimeout((at - t) * 1000)

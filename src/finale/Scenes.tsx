@@ -2,6 +2,7 @@ import { motion } from 'motion/react'
 import type { Photo, Quote } from '../types'
 import { useMedia } from '../vault/VaultProvider'
 import { pad } from '../lib/ambiance'
+import { inline } from '../lib/text'
 
 const soft = [0.22, 1, 0.36, 1] as const
 const pen = [0.45, 0.05, 0.4, 1] as const
@@ -102,7 +103,7 @@ export function QuoteScene({ quote, index }: { quote: Quote; index: number }) {
         >
           <p className="typed mb-3 text-left text-ink-soft/70">n° {pad(quote.letter)}</p>
           <p className="font-serif text-[clamp(1.4rem,4.2vw,2.5rem)] leading-[1.3] text-ink" style={{ fontVariationSettings: '"opsz" 48' }}>
-            {quote.text}
+            {inline(quote.text)}
           </p>
         </motion.div>
         <p className="hand mt-7 text-[clamp(1.4rem,4vw,2rem)] text-cream/90">
@@ -143,7 +144,7 @@ export function PhotoScene({ photo, quote, dur }: { photo: Photo; quote: Quote |
         </motion.div>
         {quote && (
           <motion.div className="max-w-xl" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.4, delay: 1.6, ease: soft }}>
-            <p className="font-serif text-[clamp(1.1rem,2.6vw,1.6rem)] italic leading-snug text-cream/90">« {quote.text} »</p>
+            <p className="font-serif text-[clamp(1.1rem,2.6vw,1.6rem)] italic leading-snug text-cream/90">« {inline(quote.text)} »</p>
             <p className="hand mt-2 text-xl text-cream/75">{quote.author}</p>
           </motion.div>
         )}
