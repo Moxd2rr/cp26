@@ -86,6 +86,11 @@ for (const d of devices) {
   const finaleBtn = page.getByRole('button', { name: /Il reste une dernière chose/ })
   await finaleBtn.scrollIntoViewIfNeeded()
   await page.waitForTimeout(2500)
+  const lastLine = await page.evaluate(() => {
+    const lines = document.querySelectorAll('.letter-body .line')
+    return lines.length ? Number(getComputedStyle(lines[lines.length - 1]).opacity) : 0
+  })
+  if (lastLine < 0.9) errors.push(`[${d.name}] texte de la dernière lettre invisible (opacité ${lastLine})`)
   await shot('13-derniere-lettre-fin')
   await finaleBtn.click()
 

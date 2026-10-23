@@ -36,8 +36,14 @@ export function Reader({ letter, isFinal, prev, next, onClose, onNavigate, onFin
   const look = LOOK[letter.ambiance]
   const [lightbox, setLightbox] = useState<number | null>(null)
 
-  const { paragraphs, signatureLine, words } = useMemo(() => {
+  const { paragraphs, signatureLine, title, words } = useMemo(() => {
     const ps = splitBody(letter.body)
+    let title: string | null = null
+    if (letter.firstLineTitle && ps.length) {
+      title = ps[0][0]
+      ps[0] = ps[0].slice(1)
+      if (!ps[0].length) ps.shift()
+    }
     let sig: string | null = null
     if (letter.lastLineSignature) {
       const last = ps[ps.length - 1]
@@ -45,7 +51,7 @@ export function Reader({ letter, isFinal, prev, next, onClose, onNavigate, onFin
       ps[ps.length - 1] = last.slice(0, -1)
       if (!ps[ps.length - 1].length) ps.pop()
     }
-    return { paragraphs: ps, signatureLine: sig, words: wordCount(letter.body) }
+    return { paragraphs: ps, signatureLine: sig, title, words: wordCount(letter.body) }
   }, [letter])
 
   const layout = resolveLayout(letter, paragraphs.length, words)
@@ -77,18 +83,21 @@ export function Reader({ letter, isFinal, prev, next, onClose, onNavigate, onFin
 
   const body: ReactNode[] = paragraphs.map((lines, pi) => (
     <div key={pi}>
-      <motion.p
-        initial={{ opacity: 0, y: 10 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, amount: 0.2 }}
-        transition={{ duration: 1, ease: soft, delay: pi === 0 ? 0.4 : 0 }}
-      >
+      <p>
+        {/* Chaque ligne apparaît dès qu'elle entre à l'écran (fonctionne aussi pour les très longues lettres). */}
         {lines.map((line, li) => (
-          <span key={li} className="line block">
+          <motion.span
+            key={li}
+            className="line block"
+            initial={{ opacity: 0, y: 10 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 'some', margin: '0px 0px -6% 0px' }}
+            transition={{ duration: 0.9, ease: soft, delay: pi === 0 && li < 3 ? 0.4 + li * 0.12 : 0 }}
+          >
             {inline(line)}
-          </span>
+          </motion.span>
         ))}
-      </motion.p>
+      </p>
       {interleaveAt.get(pi)?.map((i) => photo(letter.photos[i], i))}
     </div>
   ))
@@ -142,6 +151,18 @@ export function Reader({ letter, isFinal, prev, next, onClose, onNavigate, onFin
               {letter.relation && <p className="typed mt-2 text-ink-soft/80">{letter.relation}</p>}
               <div className="mt-6 h-px w-24 bg-ink/20" />
             </header>
+
+            {title && (
+              <motion.p
+                className="mb-10 font-serif text-[clamp(1.3rem,4vw,1.6rem)] italic leading-snug text-ink"
+                style={{ fontVariationSettings: '"opsz" 36' }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.2, delay: 0.3, ease: soft }}
+              >
+                {inline(title)}
+              </motion.p>
+            )}
 
             {layout === 'photo-haut' && letter.photos[0] && photo(letter.photos[0], 0, 'mb-12')}
 

@@ -18,7 +18,7 @@ export const quoteDuration = (text: string) => clamp(2.3 + text.length * 0.024, 
 /**
  * Construit la séquence finale à partir du contenu fourni (aucun texte inventé :
  * citations extraites mot pour mot, noms des auteurs, photos fournies, textes du fichier de configuration).
- * Les photos sont intercalées entre les citations.
+ * Les photos sont intercalées entre les citations ; la séquence se termine sur la dernière citation.
  */
 export function buildScenes(c: Content): Scene[] {
   const f = c.finale
@@ -40,7 +40,8 @@ export function buildScenes(c: Content): Scene[] {
   let qi = 0
   let pi = 0
   for (let i = 0; i < total; i++) {
-    const photoSlot = photos.length && pi < photos.length && Math.round(((pi + 1) * total) / photos.length) - 1 === i
+    // Photos réparties à l'intérieur de la séquence : la dernière citation précède toujours la convergence.
+    const photoSlot = photos.length && pi < photos.length && Math.round(((pi + 1) * total) / (photos.length + 1)) - 1 === i
     if (photoSlot || qi >= quotes.length) mixed.push(photos[pi++])
     else mixed.push(quotes[qi++])
   }

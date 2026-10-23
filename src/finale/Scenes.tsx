@@ -88,7 +88,7 @@ export function Names({ names }: { names: string[] }) {
 export function QuoteScene({ quote, index }: { quote: Quote; index: number }) {
   const tilt = index % 2 ? 1.6 : -1.8
   return (
-    <motion.div className="absolute inset-0" exit={{ opacity: 0, y: -20, transition: { duration: 0.8, ease: soft } }}>
+    <motion.div className="absolute inset-0" exit={{ opacity: 0, y: -24, transition: { duration: 0.45, ease: 'easeIn' } }}>
       <Full>
         <motion.div
           className="paper relative max-w-[min(92vw,44rem)] px-7 py-7 sm:px-12 sm:py-10"
@@ -98,7 +98,7 @@ export function QuoteScene({ quote, index }: { quote: Quote; index: number }) {
           }}
           initial={{ opacity: 0, y: 50, rotate: tilt * 3 }}
           animate={{ opacity: 1, y: 0, rotate: tilt }}
-          transition={{ duration: 1.1, ease: soft }}
+          transition={{ duration: 1.1, delay: 0.45, ease: soft }}
         >
           <p className="typed mb-3 text-left text-ink-soft/70">n° {pad(quote.letter)}</p>
           <p className="font-serif text-[clamp(1.4rem,4.2vw,2.5rem)] leading-[1.3] text-ink" style={{ fontVariationSettings: '"opsz" 48' }}>
@@ -106,7 +106,7 @@ export function QuoteScene({ quote, index }: { quote: Quote; index: number }) {
           </p>
         </motion.div>
         <p className="hand mt-7 text-[clamp(1.4rem,4vw,2rem)] text-cream/90">
-          <Written delay={0.9} duration={1.2}>
+          <Written delay={1.2} duration={1.2}>
             {quote.author}
           </Written>
         </p>

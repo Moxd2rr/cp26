@@ -20,6 +20,8 @@ export interface Letter {
   relation: string | null
   signature: string | null
   lastLineSignature: boolean
+  /** La première ligne est un titre écrit par l'auteur : affichée comme titre, texte inchangé. */
+  firstLineTitle?: boolean
   ambiance: Ambiance
   layout: Layout
   /** Texte intégral, tel que fourni. */

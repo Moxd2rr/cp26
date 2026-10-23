@@ -139,6 +139,7 @@ for (const [i, { file, meta, body }] of parsed.entries()) {
     relation: meta.lien ?? null,
     signature: meta.signature ?? null,
     lastLineSignature: meta.derniere_ligne_signature === true,
+    firstLineTitle: meta.premiere_ligne_titre === true,
     ambiance,
     layout,
     body,
