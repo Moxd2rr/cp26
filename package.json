@@ -1,0 +1,42 @@
+{
+  "name": "chapitre-26",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Chapitre 26 — un cadeau d'anniversaire digital, privé et chiffré.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "seal": "node --env-file-if-exists=.env.local scripts/seal.mjs",
+    "content:open": "node --env-file-if-exists=.env.local scripts/open.mjs",
+    "link": "node --env-file-if-exists=.env.local scripts/link.mjs",
+    "passphrase": "node scripts/passphrase.mjs",
+    "typecheck": "tsc -b",
+    "test": "vitest run",
+    "test:e2e": "node --env-file-if-exists=.env.local scripts/e2e.mjs"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/eb-garamond": "^5.3.0",
+    "@fontsource/jost": "^5.3.0",
+    "@fontsource/pinyon-script": "^5.3.0",
+    "motion": "^14.6.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "playwright-core": "^1.64.1",
+    "sharp": "^0.35.5",
+    "tailwindcss": "^4.3.3",
+    "typescript": "~5.9",
+    "vite": "^8.3.5",
+    "vitest": "^5.0.5",
+    "yaml": "^2.9.1"
+  }
+}

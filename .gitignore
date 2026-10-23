@@ -1,0 +1,13 @@
+# Dépendances et builds
+node_modules/
+dist/
+*.tsbuildinfo
+test-results/
+screenshots/
+
+# ⚠️ CONTENU PRIVÉ EN CLAIR — ne jamais versionner.
+# Seule la version chiffrée (public/vault/) est publiée.
+content/
+.env
+.env.*
+!.env.example
