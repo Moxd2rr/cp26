@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "kdf": {
+    "name": "PBKDF2",
+    "hash": "SHA-256",
+    "iterations": 600000,
+    "salt": "t4/69ZW/yFl8f2EUMYxaik8sQUfFT0hiMlakzGI36Jo="
+  },
+  "content": "330444a0fc282b482c164d50",
+  "source": "f97ff026cb527317016d2db6"
+}

@@ -32,6 +32,12 @@ export function App() {
               <p className="font-serif text-xl italic text-cream/70">Les lettres ne sont pas disponibles pour l’instant. Réessaie dans un moment.</p>
             </main>
           )}
+          {status === 'nokey' && (
+            <main className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-6 text-center">
+              <p className="hand text-4xl text-cream/85">Chapitre 26</p>
+              <p className="mt-4 max-w-sm font-serif text-xl italic text-cream/65">Ce cadeau s’ouvre avec le lien qui t’a été envoyé.</p>
+            </main>
+          )}
         </>
       )}
     </MotionConfig>

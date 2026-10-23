@@ -24,7 +24,12 @@ Le dépôt GitHub est **public**. Les lettres, les photos et la musique n'y sont
 | Coffre chiffré (AES-256-GCM) | `public/vault/` | Oui, illisible sans la clé |
 | Phrase secrète | `.env.local` ou variable de l'hébergeur | **Non** |
 
-**Pas de mot de passe pour la destinataire** : la clé est intégrée au site au moment du build, à partir de `CP26_PASSPHRASE`. Conséquence à connaître : **toute personne qui a l'adresse du site peut lire les lettres**. L'adresse doit donc rester privée. Les moteurs de recherche sont exclus (`noindex`, `robots.txt`). Le site ne contacte aucun service tiers et ses polices sont auto-hébergées.
+**Pas de mot de passe à taper.** Deux façons de livrer la clé :
+
+- **GitHub Pages (site public)** : la clé n'est **ni dans le site, ni dans le dépôt**. Elle voyage uniquement dans le **lien personnel** envoyé à la destinataire (`https://…/cp26/#mots-de-la-cle`). La partie après `#` n'est jamais envoyée au serveur, et elle est effacée de la barre d'adresse dès l'ouverture. Le téléphone s'en souvient ensuite. Sans ce lien, le site affiche seulement « Ce cadeau s'ouvre avec le lien qui t'a été envoyé ».
+- **Hébergeur privé (Netlify, Vercel…)** : la clé peut être intégrée au build via `CP26_PASSPHRASE`. Dans ce cas, toute personne qui a l'adresse du site peut lire les lettres.
+
+Les moteurs de recherche sont exclus (`noindex`). Le site ne contacte aucun service tiers et ses polices sont auto-hébergées.
 
 ## Commandes
 
@@ -34,6 +39,8 @@ npm run passphrase      # génère une phrase secrète → .env.local : CP26_PAS
 npm run seal            # chiffre content/ → public/vault/ (rapport : infos manquantes, citations vérifiées)
 npm run dev             # site en local : http://localhost:5173
 npm run build           # site statique dans dist/ (clé intégrée si CP26_PASSPHRASE est défini)
+npm run build:pages     # site pour GitHub Pages dans docs/ (SANS la clé)
+npm run link            # affiche le lien personnel à envoyer
 npm run compose         # régénère la musique de fond originale (content/music/douceur.mp3)
 npm run test:e2e        # parcours complet mobile + ordinateur (après `npx vite preview --port 4173`)
 ```
@@ -67,10 +74,15 @@ Pour une autre musique, déposer un MP3 dans `content/music/` et l'indiquer dans
 
 ## Déployer
 
-Le site est statique.
+### GitHub Pages (recommandé ici)
 
-- **Netlify** : importer le dépôt (`netlify.toml` fourni) et ajouter la variable d'environnement `CP26_PASSPHRASE`.
-- **Vercel** : importer le dépôt (framework Vite, `vercel.json` fourni) et ajouter `CP26_PASSPHRASE`.
-- **Cloudflare Pages** : commande `npm run build`, dossier `dist`, variable `CP26_PASSPHRASE`.
+1. `npm run seal && npm run build:pages`, puis committer et pousser `docs/`.
+2. Une seule fois, sur GitHub : **Settings → Pages → Build and deployment**. Choisir *Source : Deploy from a branch*, puis la branche du site et le dossier **`/docs`**, et cliquer sur **Save**.
+3. Après une à deux minutes, le site est en ligne sur `https://moxd2rr.github.io/cp26/`.
+4. `npm run link` affiche le **lien personnel** à envoyer à la destinataire.
 
-Envoyer ensuite simplement l'adresse du site.
+### Autres hébergeurs
+
+- **Netlify** : importer le dépôt (`netlify.toml` fourni). Ajouter `CP26_PASSPHRASE` pour intégrer la clé, ou `CP26_NO_EMBED=1` pour utiliser le lien personnel.
+- **Vercel** : importer le dépôt (framework Vite, `vercel.json` fourni), avec les mêmes variables.
+- **Cloudflare Pages** : commande `npm run build`, dossier `dist`, avec les mêmes variables.

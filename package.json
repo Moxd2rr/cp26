@@ -14,7 +14,9 @@
     "typecheck": "tsc -b",
     "test": "vitest run",
     "test:e2e": "node --env-file-if-exists=.env.local scripts/e2e.mjs",
-    "compose": "node scripts/compose.mjs content/music/douceur.mp3"
+    "compose": "node scripts/compose.mjs content/music/douceur.mp3",
+    "build:pages": "tsc -b && CP26_NO_EMBED=1 vite build --outDir docs --emptyOutDir && node -e \"require('fs').writeFileSync('docs/.nojekyll','')\"",
+    "link": "node --env-file-if-exists=.env.local scripts/link.mjs"
   },
   "dependencies": {
     "@fontsource-variable/newsreader": "^5.3.0",

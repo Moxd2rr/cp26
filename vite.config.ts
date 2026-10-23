@@ -12,7 +12,8 @@ import { pbkdf2Sync } from 'node:crypto'
 function embeddedKey(mode: string): string {
   const env = { ...loadEnv(mode, process.cwd(), ''), ...process.env }
   const pass = env.CP26_PASSPHRASE
-  if (!pass) return ''
+  // CP26_NO_EMBED=1 : site public (GitHub Pages) → la clé voyage uniquement dans le lien personnel.
+  if (!pass || env.CP26_NO_EMBED) return ''
   const manifest = JSON.parse(fs.readFileSync('public/vault/manifest.json', 'utf8'))
   const master = pbkdf2Sync(pass.trim().normalize('NFC'), Buffer.from(manifest.kdf.salt, 'base64'), manifest.kdf.iterations, 32, 'sha256')
   return master.toString('base64')
