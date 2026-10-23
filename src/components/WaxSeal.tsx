@@ -70,7 +70,7 @@ export function WaxSeal({ label, colors, size = 64, seed = 3, half, className = 
           y="50"
           dy="0.36em"
           textAnchor="middle"
-          fontFamily="Cormorant Garamond, Georgia, serif"
+          fontFamily="Newsreader Variable, Georgia, serif"
           fontStyle="italic"
           fontWeight={600}
           fontSize={label.length > 2 ? 22 : 30}
@@ -84,7 +84,7 @@ export function WaxSeal({ label, colors, size = 64, seed = 3, half, className = 
           y="49.3"
           dy="0.36em"
           textAnchor="middle"
-          fontFamily="Cormorant Garamond, Georgia, serif"
+          fontFamily="Newsreader Variable, Georgia, serif"
           fontStyle="italic"
           fontWeight={600}
           fontSize={label.length > 2 ? 22 : 30}

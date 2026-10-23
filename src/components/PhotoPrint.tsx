@@ -20,9 +20,10 @@ export function PhotoPrint({ photo, tilt = 0, onOpen, className = '' }: { photo:
       <button
         type="button"
         onClick={onOpen}
-        className="group block w-full bg-[#fbf7ef] p-2 pb-2.5 shadow-[0_30px_60px_-25px_rgba(40,25,10,0.65),0_8px_18px_-10px_rgba(40,25,10,0.45)] transition-transform duration-700 hover:-translate-y-1 sm:p-3 sm:pb-3.5"
+        className="group relative block w-full bg-[#fbf8f1] p-2.5 pb-9 shadow-[0_30px_60px_-25px_rgba(40,25,10,0.65),0_8px_18px_-10px_rgba(40,25,10,0.45)] transition-transform duration-700 hover:-translate-y-1 sm:p-3 sm:pb-12"
         aria-label={`Agrandir : ${photo.alt}`}
       >
+        <span className="tape -top-3 left-1/2 z-10 -translate-x-1/2 -rotate-3" aria-hidden />
         <div
           className="relative overflow-hidden bg-cover bg-center"
           style={{ aspectRatio: `${photo.w} / ${photo.h}`, backgroundImage: `url(${photo.thumb})` }}
@@ -43,7 +44,7 @@ export function PhotoPrint({ photo, tilt = 0, onOpen, className = '' }: { photo:
           <div className="pointer-events-none absolute inset-0 shadow-[inset_0_0_40px_rgba(0,0,0,0.18)]" />
         </div>
       </button>
-      {photo.caption && <figcaption className="mt-3 text-center font-script text-2xl text-ink-soft">{photo.caption}</figcaption>}
+      {photo.caption && <figcaption className="hand mt-3 text-center text-2xl text-pen">{photo.caption}</figcaption>}
     </motion.figure>
   )
 }
@@ -95,16 +96,16 @@ export function Lightbox({ photos, index, onClose }: { photos: Photo[]; index: n
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
             onClick={(e) => e.stopPropagation()}
           />
-          {photo.caption && <p className="absolute bottom-6 font-script text-2xl text-ivory/80">{photo.caption}</p>}
-          <button className="btn-ghost absolute right-4 top-4 p-3" onClick={onClose} aria-label="Fermer">
+          {photo.caption && <p className="hand absolute bottom-6 text-2xl text-cream/80">{photo.caption}</p>}
+          <button className="link absolute right-4 top-4 p-3" onClick={onClose} aria-label="Fermer">
             Fermer ✕
           </button>
           {photos.length > 1 && (
             <div className="absolute bottom-6 flex gap-8" onClick={(e) => e.stopPropagation()}>
-              <button className="btn-ghost p-2 disabled:opacity-20" disabled={i === 0} onClick={() => setI(i - 1)}>
+              <button className="link p-2 disabled:opacity-20" disabled={i === 0} onClick={() => setI(i - 1)}>
                 ← Précédente
               </button>
-              <button className="btn-ghost p-2 disabled:opacity-20" disabled={i === photos.length - 1} onClick={() => setI(i + 1)}>
+              <button className="link p-2 disabled:opacity-20" disabled={i === photos.length - 1} onClick={() => setI(i + 1)}>
                 Suivante →
               </button>
             </div>

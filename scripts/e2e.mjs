@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 // Parcours complet dans un vrai navigateur (mobile + ordinateur) avec captures d'écran.
 //   npm run build && npx vite preview --port 4173   puis   npm run test:e2e
+// (le build doit avoir été fait avec CP26_PASSPHRASE pour intégrer la clé)
 // Variables : E2E_URL (défaut http://localhost:4173/), CHROMIUM_PATH (sinon Chromium de Playwright).
 import { chromium } from 'playwright-core'
 import fs from 'node:fs'
 
 const URL = process.env.E2E_URL ?? 'http://localhost:4173/'
-const KEY = process.env.CP26_PASSPHRASE
 const OUT = process.env.E2E_OUT ?? 'screenshots'
 const exe = process.env.CHROMIUM_PATH ?? (fs.existsSync('/opt/pw-browsers/chromium-1194/chrome-linux/chrome') ? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome' : undefined)
-if (!KEY) throw new Error('CP26_PASSPHRASE manquant')
 fs.mkdirSync(OUT, { recursive: true })
 
 const browser = await chromium.launch({ executablePath: exe })
@@ -27,57 +26,67 @@ for (const d of devices) {
   const shot = (n) => page.screenshot({ path: `${OUT}/${d.name}-${n}.png` })
 
   await page.goto(URL)
-  await page.waitForSelector('#cle')
-  await page.waitForTimeout(2200)
-  await shot('01-verrou')
-
-  // Mauvaise clé → message d'erreur
-  await page.fill('#cle', 'mauvaise-cle-123')
-  await page.click('button[type=submit]')
-  await page.getByRole('alert').waitFor()
-
-  await page.fill('#cle', KEY)
-  await page.click('button[type=submit]')
+  // Pas de mot de passe : l'accueil s'affiche directement.
   await page.getByRole('button', { name: 'Entrer' }).waitFor({ timeout: 20000 })
-  await page.waitForTimeout(6500)
-  await shot('02-accueil')
+  await page.waitForTimeout(7500)
+  await shot('01-accueil')
   await page.getByRole('button', { name: 'Entrer' }).click()
 
-  await page.waitForTimeout(3500)
-  await shot('03-intro')
+  await page.waitForTimeout(4000)
+  await shot('02-intro')
   await page.getByRole('button', { name: 'Passer' }).click()
 
+  // Le grand cadeau
+  await page.getByRole('button', { name: 'Ouvrir le cadeau' }).first().waitFor()
+  await page.waitForTimeout(2200)
+  await shot('03-cadeau')
+  await page.getByRole('button', { name: 'Ouvrir le cadeau' }).last().click()
+  await page.waitForTimeout(900)
+  await shot('04-cadeau-ouverture')
+  await page.waitForTimeout(1300)
+  await shot('05-lettres-qui-sortent')
+  await page.waitForTimeout(1500)
+  await shot('06-lettres-en-vol')
+  await page.waitForTimeout(3000)
   await page.getByRole('button', { name: /^Lettre 1,/ }).waitFor()
-  await page.waitForTimeout(2500)
-  await shot('04-galerie')
+  await page.evaluate(() => document.querySelector('main')?.scrollTo({ top: 0 }))
+  await page.waitForTimeout(600)
+  await shot('07-table')
+  await page.getByRole('button', { name: /^Lettre 1,/ }).scrollIntoViewIfNeeded()
+  await page.waitForTimeout(600)
+  await shot('08-enveloppes')
 
   await page.getByRole('button', { name: /^Lettre 1,/ }).click()
-  await page.waitForTimeout(1700)
-  await shot('05-ouverture')
-  await page.getByText('Lettre n° 01').waitFor({ timeout: 8000 })
+  await page.waitForTimeout(700)
+  await shot('09-ouverture-a')
+  await page.waitForTimeout(1500)
+  await shot('09-ouverture-b')
+  await page.waitForTimeout(900)
+  await shot('09-ouverture-c')
+  await page.getByRole('button', { name: '← Toutes les lettres' }).waitFor({ timeout: 10000 })
   await page.waitForTimeout(1800)
-  await shot('06-lettre')
+  await shot('10-lettre')
 
   // Lettre n°5 (texte court : mise en page « poème »)
   await page.keyboard.press('Escape')
-  await page.waitForTimeout(800)
+  await page.waitForTimeout(1000)
   await page.getByRole('button', { name: /^Lettre 5,/ }).click()
-  await page.getByText('Lettre n° 05').waitFor({ timeout: 8000 })
+  await page.getByRole('button', { name: '← Toutes les lettres' }).waitFor({ timeout: 10000 })
   await page.waitForTimeout(1800)
-  await shot('07-lettre-courte')
+  await shot('11-lettre-courte')
   await page.keyboard.press('Escape')
-  await page.waitForTimeout(800)
+  await page.waitForTimeout(1000)
 
   // Dernière lettre : verrouillée tant que les autres ne sont pas lues → confirmation
-  await page.getByRole('button', { name: /La dernière lettre/ }).click()
+  await page.getByRole('button', { name: /^Lettre \d+,/ }).last().click()
   await page.getByRole('button', { name: 'L’ouvrir' }).click()
-  await page.getByText(/La dernière lettre · n°/).waitFor({ timeout: 10000 })
+  await page.getByRole('button', { name: '← Toutes les lettres' }).waitFor({ timeout: 12000 })
   await page.waitForTimeout(1500)
-  await shot('08-derniere-lettre')
+  await shot('12-derniere-lettre')
   const finaleBtn = page.getByRole('button', { name: /Il reste une dernière chose/ })
   await finaleBtn.scrollIntoViewIfNeeded()
   await page.waitForTimeout(2500)
-  await shot('09-derniere-lettre-fin')
+  await shot('13-derniere-lettre-fin')
   await finaleBtn.click()
 
   // Finale : captures à des moments clés
@@ -86,12 +95,12 @@ for (const d of devices) {
   for (const [at, label] of marks) {
     await page.waitForTimeout((at - t) * 1000)
     t = at
-    await shot(`10-finale-${label}`)
+    await shot(`14-finale-${label}`)
   }
   await page.getByRole('button', { name: 'Relire les lettres' }).waitFor({ timeout: 10000 })
   await page.getByRole('button', { name: 'Relire les lettres' }).click()
-  await page.getByRole('button', { name: 'Revoir le final' }).waitFor()
-  await shot('11-galerie-apres')
+  await page.getByRole('button', { name: 'Revoir le final' }).waitFor({ state: 'attached' })
+  await shot('15-table-apres')
   await ctx.close()
   console.log(`✓ ${d.name}`)
 }

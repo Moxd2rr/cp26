@@ -177,10 +177,11 @@ for (const [i, p] of (fin.photos ?? []).entries()) {
 }
 
 let music = null
-if (fin.musique) {
-  const src = path.join(CONTENT_DIR, fin.musique.replace(/^music\//, 'music/'))
-  const file = fs.existsSync(src) ? src : path.join(MUSIC_DIR, path.basename(fin.musique))
-  if (!fs.existsSync(file)) fail(`Musique introuvable : ${fin.musique}`)
+const musicPath = xp.musique ?? fin.musique
+if (musicPath) {
+  const src = path.join(CONTENT_DIR, musicPath)
+  const file = fs.existsSync(src) ? src : path.join(MUSIC_DIR, path.basename(musicPath))
+  if (!fs.existsSync(file)) fail(`Musique introuvable : ${musicPath}`)
   const ext = path.extname(file).toLowerCase()
   const mime = { '.mp3': 'audio/mpeg', '.m4a': 'audio/mp4', '.aac': 'audio/aac', '.ogg': 'audio/ogg', '.wav': 'audio/wav' }[ext]
   if (!mime) fail(`Format audio non pris en charge : ${ext}`)
@@ -193,6 +194,11 @@ const content = {
   recipient: { firstName: who.prenom, fullName: who.nom_complet ?? who.prenom, nickname: who.surnom ?? who.prenom, age: who.age ?? 26 },
   welcome: { eyebrow: fill(xp.accueil?.surtitre ?? 'Pour'), message: fill(xp.accueil?.message), button: fill(xp.accueil?.bouton ?? 'Entrer') },
   intro: { lines: fillAll(xp.introduction?.lignes), button: fill(xp.introduction?.bouton ?? 'Voir mes lettres') },
+  gift: {
+    tag: fill(xp.cadeau?.etiquette ?? 'Pour {prenom}'),
+    invitation: fill(xp.cadeau?.invitation ?? ''),
+    hint: fill(xp.cadeau?.indice ?? ''),
+  },
   gallery: { title: fill(xp.galerie?.titre ?? 'Tes lettres'), subtitle: fill(xp.galerie?.sous_titre) },
   finalLetter: {
     number: finalNumber,
@@ -208,14 +214,14 @@ const content = {
     message: fillAll(fin.message),
     conclusion: fillAll(fin.conclusion),
     signature: fill(fin.signature ?? ''),
-    music,
   },
+  music,
 }
 // Les noms de fichiers d'origine ne sont pas nécessaires au site.
 const strip = (p) => { const { file, ...rest } = p; return rest }
 for (const l of content.letters) l.photos = l.photos.map(strip)
 for (const p of content.finale.photos) p.photo = strip(p.photo)
-if (content.finale.music) content.finale.music = { blob: content.finale.music.blob, mime: content.finale.music.mime }
+if (content.music) content.music = { blob: content.music.blob, mime: content.music.mime }
 
 const contentId = await store(new TextEncoder().encode(JSON.stringify(content)))
 
@@ -262,7 +268,7 @@ for (const l of letters) {
 }
 const nums = letters.map((l) => l.number)
 for (let n = 1; n <= Math.max(...nums); n++) if (!nums.includes(n)) warnings.push(`Numéro ${n} absent (trou dans la numérotation).`)
-if (!music) notes.push('Aucune musique pour l’animation finale (facultatif).')
+if (!music) notes.push('Aucune musique de fond (facultatif).')
 if (finalePhotos.length < 3) notes.push(`Seulement ${finalePhotos.length} photo(s) dans l’animation finale — plus de photos la rendraient plus riche.`)
 
 const words = (s) => s.split(/\s+/).filter(Boolean).length
@@ -272,7 +278,7 @@ for (const l of letters) {
   const star = l.number === finalNumber ? ' ★ dernière lettre' : ''
   console.log(`  ${String(l.number).padStart(2, '0')}  ${l.author.padEnd(26)} ${String(words(l.body)).padStart(4)}  ${String(l.photos.length).padStart(6)}  ${l.ambiance}${star}`)
 }
-console.log(`\n  Finale : ${content.finale.quotes.length} citations vérifiées mot pour mot, ${finalePhotos.length} photo(s), musique : ${music ? 'oui' : 'non'}`)
+console.log(`\n  Finale : ${content.finale.quotes.length} citations vérifiées mot pour mot, ${finalePhotos.length} photo(s) · musique de fond : ${music ? music.file : 'aucune'}`)
 if (warnings.length) console.log('\n  Informations manquantes (rien n’a été inventé) :\n' + warnings.map((w) => `   • ${w}`).join('\n'))
 if (notes.length) console.log('\n  Notes :\n' + notes.map((w) => `   • ${w}`).join('\n'))
 console.log(`\n  Fichiers chiffrés : ${written.size}  ·  KDF PBKDF2-SHA256 × ${manifest.kdf.iterations.toLocaleString('fr-FR')}\n`)

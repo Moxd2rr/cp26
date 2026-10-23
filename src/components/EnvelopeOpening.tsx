@@ -1,155 +1,136 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import type { Letter } from '../types'
-import { AMBIANCE, pad } from '../lib/ambiance'
-import { WaxSeal } from './WaxSeal'
+import { pad } from '../lib/ambiance'
+import { EnvelopeBack, EnvelopeFront, Flap, Seal } from './Envelope'
 
-const silk = [0.22, 1, 0.36, 1] as const
+const soft = [0.22, 1, 0.36, 1] as const
 
 /**
- * Ouverture d'une enveloppe : apparition → le sceau se brise → le rabat s'ouvre → la lettre sort.
- * Toucher l'écran passe directement à la lecture. Plus court pour une relecture.
+ * Ouverture : l'enveloppe arrive face avant → se retourne → le sceau se brise → le rabat s'ouvre → la lettre sort.
+ * Toucher l'écran passe directement à la lecture. Plus rapide pour une relecture.
  */
-export function EnvelopeOpening({ letter, reread, isFinal, onDone }: { letter: Letter; reread: boolean; isFinal: boolean; onDone: () => void }) {
+export function EnvelopeOpening({
+  letter,
+  recipient,
+  reread,
+  onDone,
+}: {
+  letter: Letter
+  recipient: string
+  reread: boolean
+  onDone: () => void
+}) {
   const reduce = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const speed = reread ? 0.55 : isFinal ? 1.25 : 1
-  // Étapes : 0 apparition, 1 sceau brisé, 2 rabat qui s'ouvre, 3 rabat passé derrière, 4 lettre sortie, 5 sortie
+  const k = reread ? 0.55 : 1
+  // 0 arrivée · 1 retournement (mi-course) · 2 dos visible · 3 sceau brisé · 4 rabat ouvert · 5 lettre sortie · 6 départ
   const [step, setStep] = useState(0)
-  const wax = AMBIANCE[letter.ambiance].wax
-  const dark = isFinal
 
   useEffect(() => {
     if (reduce) {
-      const t = setTimeout(onDone, 500)
+      const t = setTimeout(onDone, 450)
       return () => clearTimeout(t)
     }
-    const times = [700, 1200, 1600, 2250, 3150].map((t) => t * speed)
+    const times = [650, 900, 1350, 1750, 2500, 3350].map((t) => t * k)
     const timers = times.map((t, i) => setTimeout(() => setStep(i + 1), t))
-    timers.push(setTimeout(onDone, 3750 * speed))
+    timers.push(setTimeout(onDone, 3900 * k))
     return () => timers.forEach(clearTimeout)
-  }, [onDone, reduce, speed])
+  }, [onDone, reduce, k])
 
-  const paperTone = dark ? 'paper-dark' : 'paper'
-  const inner = dark ? 'border-gold/25' : 'border-[rgb(110_80_35/0.15)]'
+  const back = step >= 1
+  const flapOpen = step >= 4
 
   return (
     <motion.div
-      className="fixed inset-0 z-40 flex cursor-pointer items-center justify-center bg-night/80 backdrop-blur-[3px]"
+      className="fixed inset-0 z-40 flex cursor-pointer items-center justify-center bg-table-deep/75 backdrop-blur-[2px]"
       onClick={onDone}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      exit={{ opacity: 0, transition: { duration: 0.5 } }}
+      exit={{ opacity: 0, transition: { duration: 0.45 } }}
       role="presentation"
     >
       <motion.div
-        aria-hidden
-        className="pointer-events-none absolute h-[70vmin] w-[70vmin] rounded-full"
-        style={{ background: `radial-gradient(closest-side, rgb(${AMBIANCE[letter.ambiance].glow} / 0.35), transparent)` }}
-        initial={{ scale: 0.4, opacity: 0 }}
-        animate={{ scale: step >= 4 ? 1.5 : 1, opacity: step >= 1 ? 1 : 0.5 }}
-        transition={{ duration: 1.4, ease: silk }}
-      />
-
-      <motion.div
-        className="relative aspect-[1.45] w-[min(84vw,460px)] [perspective:1400px]"
-        initial={{ scale: 0.7, y: 40, opacity: 0, rotate: -3 }}
-        animate={step >= 5 ? { scale: 1.08, y: 60, opacity: 0 } : { scale: 1, y: step >= 4 ? 70 : 0, opacity: 1, rotate: 0 }}
-        transition={{ duration: step >= 4 ? 0.9 * speed : 0.8 * speed, ease: silk }}
+        className="relative aspect-[1.42] w-[min(86vw,480px)]"
+        initial={{ y: 60, rotate: -6, opacity: 0, scale: 0.85 }}
+        animate={
+          step >= 6
+            ? { y: 120, opacity: 0, scale: 0.95, rotate: 0 }
+            : { y: step >= 5 ? 90 : 0, rotate: step >= 2 ? 0 : -2, opacity: 1, scale: 1 }
+        }
+        transition={{ duration: step >= 5 ? 0.9 * k : 0.6 * k, ease: soft }}
       >
-        {/* Fond de l'enveloppe */}
-        <div className={`${paperTone} absolute inset-0 rounded-[4px]`} style={{ filter: dark ? undefined : 'brightness(0.9)' }} />
-
-        {/* La lettre */}
+        {/* Retournement : on écrase horizontalement, on change de face, on déplie. */}
         <motion.div
-          className={`paper absolute inset-x-[6%] top-[5%] h-[90%] rounded-[2px] px-[8%] pt-[9%]`}
-          style={{ zIndex: step >= 4 ? 30 : 2 }}
-          initial={{ y: 0 }}
-          animate={{ y: step >= 4 ? '-62%' : 0, scale: step >= 5 ? 1.15 : 1, opacity: step >= 5 ? 0 : 1 }}
-          transition={{ duration: 0.9 * speed, ease: silk }}
+          className="lifted absolute inset-0 rounded-[2px]"
+          animate={{ scaleX: step === 1 ? 0 : 1 }}
+          transition={{ duration: 0.25 * k, ease: 'easeInOut' }}
         >
-          <p className="smallcaps !text-[0.55rem] text-gold-deep">Lettre n° {pad(letter.number)}</p>
-          <p className="mt-2 font-script text-[clamp(1.5rem,6vw,2.1rem)] leading-tight text-ink">{letter.author}</p>
-          <div className="mt-4 space-y-2 opacity-30">
-            {[92, 100, 84, 96, 70].map((w, i) => (
-              <div key={i} className="h-[3px] rounded bg-ink/40" style={{ width: `${w}%` }} />
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Poche avant (découpe en V) */}
-        <div className="absolute inset-0" style={{ zIndex: 10 }}>
-          <div
-            className={`${paperTone} absolute inset-0 rounded-[4px]`}
-            style={{ clipPath: 'polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%)' }}
-          />
-          <svg viewBox="0 0 145 100" preserveAspectRatio="none" className="absolute inset-0 h-full w-full">
-            <path d="M0,0 L72.5,52 L145,0" stroke={dark ? 'rgb(201 164 92 / 0.4)' : 'rgb(110 80 35 / 0.22)'} strokeWidth="0.45" fill="none" />
-            <path d="M0,100 L60,45 M145,100 L85,45" stroke={dark ? 'rgb(201 164 92 / 0.2)' : 'rgb(110 80 35 / 0.14)'} strokeWidth="0.45" fill="none" />
-          </svg>
-          <div className={`absolute inset-[8px] rounded-[2px] border ${inner} opacity-60`} style={{ clipPath: 'polygon(0 55%, 100% 55%, 100% 100%, 0 100%)' }} />
-        </div>
-
-        {/* Rabat */}
-        <motion.div
-          className="absolute inset-x-0 top-0 h-[56%] origin-top [transform-style:preserve-3d]"
-          style={{ zIndex: step >= 3 ? 1 : 20 }}
-          initial={{ rotateX: 0 }}
-          animate={{ rotateX: step >= 2 ? 178 : 0 }}
-          transition={{ duration: 0.75 * speed, ease: [0.45, 0, 0.2, 1] }}
-        >
-          <div
-            className={`${paperTone} absolute inset-0 [backface-visibility:hidden]`}
-            style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)', filter: dark ? undefined : 'brightness(1.02)' }}
-          />
-          <div
-            className={`${paperTone} absolute inset-0 [backface-visibility:hidden] [transform:rotateX(180deg)]`}
-            style={{ clipPath: 'polygon(0 0, 100% 0, 50% 100%)', filter: 'brightness(0.82)' }}
-          />
-        </motion.div>
-
-        {/* Sceau */}
-        <div className="absolute left-1/2 top-[56%] -translate-x-1/2 -translate-y-1/2" style={{ zIndex: 25 }}>
-          {step < 1 ? (
-            <motion.div initial={{ scale: 1.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.6, ease: silk }}>
-              <WaxSeal label={String(letter.number)} colors={wax} size={70} seed={letter.number} />
-            </motion.div>
+          {!back ? (
+            <EnvelopeFront letter={letter} recipient={recipient} />
           ) : (
-            <div className="relative h-[70px] w-[70px]">
+            <>
+              <EnvelopeBack letter={letter} />
+
+              {/* La lettre, glissée dans l'enveloppe */}
               <motion.div
-                className="absolute inset-0"
-                initial={{ x: 0, rotate: 0, opacity: 1 }}
-                animate={{ x: -34, y: 70, rotate: -38, opacity: 0 }}
-                transition={{ duration: 1 * speed, ease: [0.5, 0, 0.75, 0] }}
+                className="paper absolute inset-x-[5%] top-[4%] h-[92%] rounded-[1px] px-[8%] pt-[8%] shadow-[0_-2px_8px_rgb(0_0_0/0.12)]"
+                style={{ zIndex: step >= 5 ? 30 : 2 }}
+                animate={{ y: step >= 5 ? '-64%' : 0 }}
+                transition={{ duration: 0.85 * k, ease: soft }}
               >
-                <WaxSeal label={String(letter.number)} colors={wax} size={70} seed={letter.number} half="left" />
+                <p className="typed !text-[0.6rem] text-ink-soft">Lettre n° {pad(letter.number)}</p>
+                <p className="hand mt-2 text-[clamp(1.3rem,5.5vw,1.9rem)] text-pen">{letter.author}</p>
+                <div className="mt-4 space-y-2.5 opacity-25">
+                  {[94, 100, 86, 97, 72].map((w, i) => (
+                    <div key={i} className="h-[2px] rounded bg-ink" style={{ width: `${w}%` }} />
+                  ))}
+                </div>
               </motion.div>
+
+              {/* Poche avant */}
+              <div className="absolute inset-0" style={{ zIndex: 10, clipPath: 'polygon(0 0, 50% 52%, 100% 0, 100% 100%, 0 100%)' }}>
+                <EnvelopeBack letter={letter} />
+              </div>
+
+              {/* Rabat : se replie vers le haut (miroir vertical), passe derrière la lettre à mi-course */}
               <motion.div
-                className="absolute inset-0"
-                initial={{ x: 0, rotate: 0, opacity: 1 }}
-                animate={{ x: 34, y: 76, rotate: 42, opacity: 0 }}
-                transition={{ duration: 1 * speed, ease: [0.5, 0, 0.75, 0] }}
+                className="absolute inset-0 origin-top"
+                style={{ zIndex: flapOpen ? 1 : 20 }}
+                animate={{ scaleY: flapOpen ? -1 : 1 }}
+                transition={{ duration: 0.6 * k, ease: [0.5, 0, 0.3, 1] }}
               >
-                <WaxSeal label={String(letter.number)} colors={wax} size={70} seed={letter.number} half="right" />
+                <Flap letter={letter} open={flapOpen} />
               </motion.div>
-              <motion.div
-                className="absolute inset-[-30px] rounded-full"
-                style={{ background: 'radial-gradient(closest-side, rgb(255 240 200 / 0.8), transparent)' }}
-                initial={{ scale: 0.2, opacity: 0.9 }}
-                animate={{ scale: 2.2, opacity: 0 }}
-                transition={{ duration: 0.9 }}
-              />
-            </div>
+
+              {/* Sceau de cire */}
+              <div className="absolute left-1/2 top-[56%] -translate-x-1/2 -translate-y-1/2" style={{ zIndex: 25 }}>
+                {step < 3 ? (
+                  <motion.div initial={{ scale: 1.3, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.35 }}>
+                    <Seal letter={letter} size={66} />
+                  </motion.div>
+                ) : (
+                  <div className="relative h-[66px] w-[66px]">
+                    {(['left', 'right'] as const).map((side) => (
+                      <motion.div
+                        key={side}
+                        className="absolute inset-0"
+                        initial={{ x: 0, y: 0, rotate: 0, opacity: 1 }}
+                        animate={{ x: side === 'left' ? -30 : 32, y: 80, rotate: side === 'left' ? -35 : 40, opacity: 0 }}
+                        transition={{ duration: 0.9 * k, ease: [0.5, 0, 0.75, 0] }}
+                      >
+                        <Seal letter={letter} size={66} half={side} />
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
           )}
-        </div>
+        </motion.div>
       </motion.div>
 
-      <motion.p
-        className="smallcaps absolute bottom-10 text-ivory/35"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2 }}
-      >
-        Touche pour lire
+      <motion.p className="typed absolute bottom-10 text-cream/35" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.2 }}>
+        touche pour lire
       </motion.p>
     </motion.div>
   )

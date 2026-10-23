@@ -1,99 +1,74 @@
 import { motion } from 'motion/react'
 import { useContent } from '../vault/VaultProvider'
 
-const silk = [0.22, 1, 0.36, 1] as const
+const soft = [0.22, 1, 0.36, 1] as const
 
-/** Écran d'accueil personnalisé : le prénom, puis un message mystérieux. */
+/** Accueil : la lampe s'allume, le prénom s'écrit à la main, puis le message. */
 export function Welcome({ onEnter }: { onEnter: () => void }) {
   const c = useContent()
   const { firstName, fullName } = c.recipient
-  const rest = fullName.startsWith(firstName) ? fullName.slice(firstName.length).trim() : fullName
   const lines = c.welcome.message.split('\n')
+  const t0 = 1.2
 
   return (
     <motion.main
       className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-6 py-16 text-center"
-      exit={{ opacity: 0, scale: 1.04, filter: 'blur(8px)', transition: { duration: 1.1, ease: silk } }}
+      exit={{ opacity: 0, transition: { duration: 0.8 } }}
     >
-      {/* Faisceau de lumière */}
-      <motion.div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-0 h-[75vh] w-[min(90vw,720px)] -translate-x-1/2"
-        style={{
-          background: 'conic-gradient(from 180deg at 50% 0%, transparent 160deg, rgb(230 207 150 / 0.13) 180deg, transparent 200deg)',
-          filter: 'blur(8px)',
-        }}
+      <motion.p
+        className="font-serif text-xl italic text-cream/60"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 3, delay: 0.3 }}
-      />
-
-      <motion.p
-        className="smallcaps text-gold/80"
-        initial={{ opacity: 0, letterSpacing: '0.8em' }}
-        animate={{ opacity: 1, letterSpacing: '0.34em' }}
-        transition={{ duration: 2.2, delay: 0.6, ease: silk }}
+        transition={{ duration: 1.4, delay: t0 }}
       >
         {c.welcome.eyebrow}
       </motion.p>
 
-      <h1 className="mt-5 font-display font-light italic leading-[0.95]">
-        <span className="sr-only">{c.recipient.fullName}</span>
-        <span aria-hidden className="block text-[clamp(3.6rem,15vw,9.5rem)]">
-          {[...c.recipient.firstName].map((ch, i) => (
-            <motion.span
-              key={i}
-              className="gold-text inline-block"
-              initial={{ opacity: 0, y: 28, filter: 'blur(12px)' }}
-              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-              transition={{ duration: 1.6, delay: 1.1 + i * 0.09, ease: silk }}
-            >
-              {ch}
-            </motion.span>
-          ))}
-        </span>
-      </h1>
-      {rest && (
-        <motion.p
+      <h1 className="relative mt-2">
+        <span className="sr-only">{fullName}</span>
+        {/* Le prénom se dévoile de gauche à droite, comme tracé à la plume. */}
+        <motion.span
           aria-hidden
-          className="smallcaps mt-5 text-ivory/60"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 1.6, delay: 2.2 }}
+          className="hand block px-4 pb-2 text-[clamp(3.4rem,15vw,8rem)] leading-[1.15] text-cream"
+          initial={{ clipPath: 'inset(-10% 100% -10% 0)' }}
+          animate={{ clipPath: 'inset(-10% 0% -10% 0)' }}
+          transition={{ duration: 2.6, delay: t0 + 0.5, ease: [0.45, 0.05, 0.4, 1] }}
         >
-          {rest}
-        </motion.p>
-      )}
+          {firstName}
+        </motion.span>
+      </h1>
+      <motion.p
+        aria-hidden
+        className="typed mt-1 uppercase text-cream/45"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1.2, delay: t0 + 3 }}
+      >
+        {fullName}
+      </motion.p>
 
-      <motion.div
-        className="hairline mx-auto mt-10 w-40"
-        initial={{ scaleX: 0, opacity: 0 }}
-        animate={{ scaleX: 1, opacity: 1 }}
-        transition={{ duration: 1.8, delay: 2.6, ease: silk }}
-      />
-
-      <div className="mt-10 max-w-md font-display text-xl leading-relaxed text-ivory/80 italic sm:text-2xl">
+      <div className="mt-12 max-w-md space-y-1 font-serif text-[1.35rem] italic leading-relaxed text-cream/85 sm:text-2xl">
         {lines.map((l, i) => (
           <motion.p
             key={i}
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 1.6, delay: 3.2 + i * 1.1, ease: silk }}
+            transition={{ duration: 1.4, delay: t0 + 3.6 + i * 1.1, ease: soft }}
           >
             {l}
           </motion.p>
         ))}
       </div>
 
-      <motion.button
-        className="btn-gold mt-14"
-        onClick={onEnter}
+      <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 1.4, delay: 3.6 + lines.length * 1.1, ease: silk }}
+        transition={{ duration: 1.2, delay: t0 + 4.2 + lines.length * 1.1, ease: soft }}
       >
-        {c.welcome.button}
-      </motion.button>
+        <button className="btn-tag mt-12" onClick={onEnter}>
+          {c.welcome.button}
+        </button>
+      </motion.div>
     </motion.main>
   )
 }

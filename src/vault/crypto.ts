@@ -11,12 +11,6 @@ export interface Manifest {
 const enc = new TextEncoder()
 const VAULT = `${import.meta.env.BASE_URL}vault/`
 
-export const toB64 = (buf: ArrayBuffer | Uint8Array) => {
-  const bytes = buf instanceof Uint8Array ? buf : new Uint8Array(buf)
-  let s = ''
-  for (const b of bytes) s += String.fromCharCode(b)
-  return btoa(s)
-}
 export const fromB64 = (s: string): Uint8Array<ArrayBuffer> => Uint8Array.from(atob(s), (c) => c.charCodeAt(0))
 
 export async function fetchManifest(): Promise<Manifest> {

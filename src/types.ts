@@ -39,6 +39,7 @@ export interface Content {
   recipient: { firstName: string; fullName: string; nickname: string; age: number }
   welcome: { eyebrow: string; message: string; button: string }
   intro: { lines: string[]; button: string }
+  gift: { tag: string; invitation: string; hint: string }
   gallery: { title: string; subtitle: string }
   finalLetter: { number: number; waitForOthers: boolean; finaleButton: string }
   letters: Letter[]
@@ -50,6 +51,7 @@ export interface Content {
     message: string[]
     conclusion: string[]
     signature: string
-    music: { blob: string; mime: string } | null
   }
+  /** Musique de fond instrumentale (facultative). */
+  music: { blob: string; mime: string } | null
 }

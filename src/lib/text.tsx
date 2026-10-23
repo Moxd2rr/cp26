@@ -73,5 +73,3 @@ export function Lines({ lines }: { lines: string[] }) {
   )
 }
 
-/** Les capitales sont illisibles en écriture calligraphiée : on bascule alors sur l'italique classique. */
-export const scriptFriendly = (s: string) => !/\p{Lu}{3,}/u.test(s)

@@ -2,10 +2,10 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, MotionConfig, motion } from 'motion/react'
 import { useVault } from './vault/VaultProvider'
 import { useProgress } from './lib/progress'
-import { AMBIANCE } from './lib/ambiance'
-import { Atmosphere } from './components/Atmosphere'
+import { LOOK } from './lib/ambiance'
+import { MusicProvider, SoundToggle, useMusic } from './lib/music'
+import { Table } from './components/Table'
 import { EnvelopeOpening } from './components/EnvelopeOpening'
-import { Lock } from './screens/Lock'
 import { Welcome } from './screens/Welcome'
 import { Intro } from './screens/Intro'
 import { Gallery } from './screens/Gallery'
@@ -19,39 +19,33 @@ export function App() {
   return (
     <MotionConfig reducedMotion="user">
       <div className="grain" aria-hidden />
-      <AnimatePresence mode="wait">
-        {status === 'open' ? (
-          <Experience key="xp" />
-        ) : status === 'error' ? (
-          <Missing key="missing" />
-        ) : status === 'checking' ? (
-          <motion.div key="checking" className="fixed inset-0" exit={{ opacity: 0 }} />
-        ) : (
-          <div key="lock">
-            <Atmosphere />
-            <Lock />
-          </div>
-        )}
-      </AnimatePresence>
+      {status === 'open' ? (
+        <MusicProvider>
+          <Experience />
+          <SoundToggle />
+        </MusicProvider>
+      ) : (
+        <>
+          <Table on={false} />
+          {status === 'error' && (
+            <main className="relative z-10 flex min-h-dvh items-center justify-center px-6 text-center">
+              <p className="font-serif text-xl italic text-cream/70">Les lettres ne sont pas disponibles pour l’instant. Réessaie dans un moment.</p>
+            </main>
+          )}
+        </>
+      )}
     </MotionConfig>
   )
 }
 
-function Missing() {
-  return (
-    <main className="relative z-10 flex min-h-dvh items-center justify-center px-6 text-center">
-      <Atmosphere dust={0.5} />
-      <p className="relative font-display text-xl italic text-ivory/70">Le coffret est introuvable pour l’instant. Réessaie dans un moment.</p>
-    </main>
-  )
-}
-
 function Experience() {
-  const { content, vaultTag, lock } = useVault()
+  const { content, vaultTag } = useVault()
   const c = content!
-  const { progress, markRead, markIntro, markFinale } = useProgress(vaultTag)
+  const music = useMusic()
+  const { progress, markRead, markIntro, setGiftOpened, markFinale } = useProgress(vaultTag)
   const [view, setView] = useState<View>({ stage: 'welcome' })
   const [opening, setOpening] = useState<{ n: number; reread: boolean } | null>(null)
+  const [giftRun, setGiftRun] = useState(0)
   const depth = useRef(0)
 
   // Historique du navigateur : le geste « retour » du téléphone ferme la lettre au lieu de quitter le site.
@@ -83,18 +77,14 @@ function Experience() {
 
   const byNumber = (n: number) => c.letters.find((l) => l.number === n)!
 
-  const openLetter = useCallback(
-    (n: number) => setOpening({ n, reread: progress.read.includes(n) }),
-    [progress.read],
-  )
+  const openLetter = useCallback((n: number) => setOpening({ n, reread: progress.read.includes(n) }), [progress.read])
 
   const finishOpening = useCallback(() => {
     if (!opening) return
     const { n } = opening
     markRead(n)
     setOpening(null)
-    if (view.stage === 'reader') go({ stage: 'reader', n }, 'replace')
-    else go({ stage: 'reader', n }, 'push')
+    go({ stage: 'reader', n }, view.stage === 'reader' ? 'replace' : 'push')
   }, [opening, markRead, view.stage, go])
 
   const navigateTo = useCallback(
@@ -114,27 +104,33 @@ function Experience() {
     if (n === finalNo) return { prev: others.at(-1) ?? null, next: null }
     const prev = i > 0 ? others[i - 1] : null
     let next = i < others.length - 1 ? others[i + 1] : null
-    // Après la dernière « ordinaire », proposer la lettre finale seulement si toutes les autres ont été lues.
+    // Après la dernière lettre « ordinaire », proposer la lettre finale seulement si toutes les autres ont été lues.
     if (!next && (!c.finalLetter.waitForOthers || !othersUnread || progress.read.includes(finalNo))) next = byNumber(finalNo)
     return { prev, next }
   }
 
   const stage = view.stage
-  const tint = stage === 'reader' ? AMBIANCE[byNumber(view.n).ambiance].glow : '201 164 92'
-  const showAtmosphere = stage !== 'finale'
+  const light = stage === 'reader' ? LOOK[byNumber(view.n).ambiance].light : undefined
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1.2 }}>
-      {showAtmosphere && <Atmosphere tint={tint} dust={stage === 'reader' ? 0 : 1} />}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+      <Table light={light} />
 
       <AnimatePresence mode="wait">
         {stage === 'welcome' && (
-          <Welcome key="welcome" onEnter={() => go(progress.introSeen ? { stage: 'gallery' } : { stage: 'intro' })} />
+          <Welcome
+            key="welcome"
+            onEnter={() => {
+              music.start()
+              go(progress.introSeen ? { stage: 'gallery' } : { stage: 'intro' })
+            }}
+          />
         )}
         {stage === 'intro' && (
           <Intro
             key="intro"
             onDone={() => {
+              music.start()
               markIntro()
               go({ stage: 'gallery' })
             }}
@@ -142,12 +138,16 @@ function Experience() {
         )}
         {(stage === 'gallery' || stage === 'reader') && (
           <Gallery
-            key="gallery"
+            key={`gallery-${giftRun}`}
             progress={progress}
             onOpen={openLetter}
             onFinale={() => go({ stage: 'finale' }, 'push')}
             onIntro={() => go({ stage: 'intro' })}
-            onLock={lock}
+            onGiftOpened={() => setGiftOpened(true)}
+            onReplayGift={() => {
+              setGiftOpened(false)
+              setGiftRun((r) => r + 1)
+            }}
           />
         )}
       </AnimatePresence>
@@ -171,16 +171,14 @@ function Experience() {
           <EnvelopeOpening
             key={`open-${opening.n}`}
             letter={byNumber(opening.n)}
+            recipient={c.recipient.firstName}
             reread={opening.reread}
-            isFinal={opening.n === finalNo}
             onDone={finishOpening}
           />
         )}
       </AnimatePresence>
 
-      <AnimatePresence>
-        {stage === 'finale' && <Finale key="finale" onExit={() => go({ stage: 'gallery' })} onSeen={markFinale} />}
-      </AnimatePresence>
+      <AnimatePresence>{stage === 'finale' && <Finale key="finale" onExit={() => go({ stage: 'gallery' })} onSeen={markFinale} />}</AnimatePresence>
     </motion.div>
   )
 }
